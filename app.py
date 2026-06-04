@@ -1,3 +1,4 @@
+from pymongo import MongoClient
 from groq import Groq
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
@@ -89,3 +90,25 @@ def summarize_document(text, language="English", length="Medium"):
         )
         total_tokens += final_response.usage.total_tokens
         return final_response.choices[0].message.content, total_tokens
+
+mongo_client = MongoClient(os.getenv("MONGO_URI"))
+db = mongo_client["summarizer_db"]
+collection = db["chat_sessions"]
+
+def load_history(session_id):
+    record = collection.find_one({"_id": session_id})
+    if record:
+        return record.get("chat_history", []), record.get("document_text", None)
+    return [], None
+
+def save_history(session_id, chat_history, document_text):
+    collection.update_one({"_id": session_id}, {"$set": {"chat_history": chat_history, "document_text": document_text}}, upsert=True)
+
+def log_analytics(event_type):
+    collection.update_one({"_id": "analytics"}, {"$inc": {f"counts.{event_type}": 1}}, upsert=True)
+
+def get_analytics():
+    record = collection.find_one({"_id": "analytics"})
+    if record:
+        return record.get("counts", {})
+    return {}
