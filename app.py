@@ -448,3 +448,430 @@ button:hover, .stButton > button:hover {
     align-items: center;
     gap: 0.7rem;
     margin-bottom: 0.8rem;
+}
+.sidebar-brand .brand-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--cobalt-bright), var(--cobalt));
+    font-size: 1.15rem;
+}
+.sidebar-brand h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+.sidebar-brand p {
+    margin: 0;
+    color: var(--muted) !important;
+    font-size: 0.82rem;
+}
+.sidebar-card {
+    padding: 0.8rem;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    margin-bottom: 0.8rem;
+}
+.sidebar-card h4 {
+    margin: 0 0 0.2rem 0;
+    font-size: 0.95rem;
+}
+.sidebar-card p {
+    margin: 0;
+    color: var(--muted) !important;
+    font-size: 0.85rem;
+}
+.file-loaded-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(45, 212, 191, 0.08);
+    border: 1px solid rgba(45, 212, 191, 0.3);
+    border-radius: 14px;
+    padding: 0.6rem 1rem;
+    margin: 0.3rem 0 0.8rem 0;
+}
+.file-loaded-card .ficon {
+    font-size: 1.3rem;
+}
+.file-loaded-card b {
+    color: var(--text) !important;
+    font-size: 0.92rem;
+}
+.file-loaded-card span {
+    display: block;
+    color: var(--muted) !important;
+    font-size: 0.78rem;
+}
+
+/* ---- Dynamic top usage banner ---- */
+.usage-banner {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: linear-gradient(90deg, rgba(240,168,64,0.18), rgba(240,168,64,0.08));
+    border: 1px solid rgba(240,168,64,0.35);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    padding: 0.65rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #ffd9a0 !important;
+    margin-bottom: 0.8rem;
+}
+.usage-banner b {
+    color: var(--amber-warn) !important;
+    font-weight: 700;
+}
+.usage-banner.danger {
+    background: linear-gradient(90deg, rgba(255,107,107,0.18), rgba(255,107,107,0.08));
+    border-color: rgba(255,107,107,0.4);
+    color: #ffc2c2 !important;
+}
+.usage-banner.danger b {
+    color: var(--danger) !important;
+}
+
+/* ---- Sidebar token analytics ---- */
+.side-quota {
+    background: rgba(240,168,64,0.08);
+    border: 1px solid rgba(240,168,64,0.3);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
+}
+.side-quota .qtop {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.75rem;
+    color: var(--muted) !important;
+    margin-bottom: 8px;
+}
+.side-quota .qtop b {
+    color: var(--amber-warn) !important;
+    font-size: 0.95rem;
+}
+.quota-track {
+    height: 6px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.quota-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber-warn), var(--danger));
+    border-radius: 100px;
+}
+.quota-count {
+    font-size: 0.72rem;
+    color: var(--muted) !important;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.quota-count b {
+    color: var(--text) !important;
+}
+.qb-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--muted) !important;
+    margin-bottom: 6px;
+}
+.qb-label {
+    width: 74px;
+    flex-shrink: 0;
+}
+.qb-track {
+    flex: 1;
+    height: 5px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.07);
+    overflow: hidden;
+}
+.qb-fill {
+    height: 100%;
+    border-radius: 100px;
+}
+.qb-fill.summarize { background: var(--cobalt-bright); }
+.qb-fill.chat { background: var(--cyan); }
+.qb-fill.compare { background: var(--amber-warn); }
+.qb-val {
+    width: 42px;
+    text-align: right;
+    color: var(--muted) !important;
+}
+</style>"""
+
+st.markdown(theme_css, unsafe_allow_html=True)
+
+# ---------------- Session State ----------------
+
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
+if "chat_history" not in st.session_state:
+    loaded_chat, loaded_doc = load_history(st.session_state.session_id)
+    st.session_state.chat_history = loaded_chat
+    st.session_state.document_text = loaded_doc
+if "tokens_used_today" not in st.session_state:
+    st.session_state.tokens_used_today = 0
+if "tokens_by_category" not in st.session_state:
+    st.session_state.tokens_by_category = {"summarize": 0, "chat": 0, "compare": 0}
+if "current_summary" not in st.session_state:
+    st.session_state.current_summary = None
+if "compare_document_text" not in st.session_state:
+    st.session_state.compare_document_text = None
+if "current_comparison" not in st.session_state:
+    st.session_state.current_comparison = None
+
+# ---------------- Dynamic usage banner + sidebar analytics ----------------
+# NOTE: these are called directly in the main script flow (not inside any
+# @st.fragment), so every action anywhere in the app — summarizing, comparing,
+# or chatting — triggers a full rerun and these numbers update immediately.
+
+def render_usage_banner():
+    tokens_used = st.session_state.tokens_used_today
+    usage_percent = (tokens_used / DAILY_TOKEN_LIMIT) * 100
+    if usage_percent >= 70:
+        css_class = "danger" if usage_percent >= 90 else ""
+        st.markdown(f"""
+        <div class="usage-banner {css_class}">
+            <span>You have used <b>{tokens_used:,} / {DAILY_TOKEN_LIMIT:,}</b> tokens today ({usage_percent:.0f}%) —
+            summaries and chat may pause once the limit is reached.</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+def render_token_analytics():
+    cat = st.session_state.tokens_by_category
+    total_used = st.session_state.tokens_used_today
+    usage_percent = min((total_used / DAILY_TOKEN_LIMIT) * 100, 100)
+
+    def pct(n):
+        return min((n / DAILY_TOKEN_LIMIT) * 100, 100)
+
+    st.markdown(f"""
+    <div class="side-quota">
+        <div class="qtop"><span>Token usage today</span><b>{usage_percent:.0f}%</b></div>
+        <div class="quota-track"><div class="quota-fill" style="width:{usage_percent:.0f}%"></div></div>
+        <div class="quota-count"><span>Used</span><b>{total_used:,} / {DAILY_TOKEN_LIMIT:,}</b></div>
+        <div class="qb-row"><span class="qb-label">Summarize</span><div class="qb-track"><div class="qb-fill summarize" style="width:{pct(cat['summarize']):.0f}%"></div></div><span class="qb-val">{cat['summarize']:,}</span></div>
+        <div class="qb-row"><span class="qb-label">Chat</span><div class="qb-track"><div class="qb-fill chat" style="width:{pct(cat['chat']):.0f}%"></div></div><span class="qb-val">{cat['chat']:,}</span></div>
+        <div class="qb-row"><span class="qb-label">Compare</span><div class="qb-track"><div class="qb-fill compare" style="width:{pct(cat['compare']):.0f}%"></div></div><span class="qb-val">{cat['compare']:,}</span></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+render_usage_banner()
+
+with st.sidebar:
+    st.markdown("""
+    <div class="sidebar-brand">
+        <div class="brand-icon">✦</div>
+        <div>
+            <h3>Nutshell AI</h3>
+            <p>Document Intelligence Suite</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.divider()
+
+    render_token_analytics()
+
+    st.markdown("""
+    <div class="sidebar-card">
+        <h4>Analytics Dashboard</h4>
+        <p>Monitor how your workspace is being used.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    stats = get_analytics()
+    st.metric("Documents Summarized", stats.get("summarize", 0))
+    st.metric("Chat Messages Sent", stats.get("chat", 0))
+    st.metric("Documents Compared", stats.get("compare", 0))
+
+st.markdown("""
+<div class="page-title">📄 Document Summarizer Assistant</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="hero-card">
+    <div class="hero-badge">Premium AI Workspace</div>
+    <h1>Turn documents into strategy-ready intelligence.</h1>
+    <p>Summarize large files, chat in multiple languages, and compare documents with a polished experience built for modern workflows.</p>
+    <div>
+        <span class="hero-pill">📄 Multi-format upload</span>
+        <span class="hero-pill">💬 Multilingual chat</span>
+        <span class="hero-pill">📊 PDF export</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="info-grid">
+    <div class="info-card">
+        <div class="info-icon">⚡</div>
+        <h4>Instant summaries</h4>
+        <p>Generate sharp summaries in seconds.</p>
+    </div>
+    <div class="info-card">
+        <div class="info-icon">🧠</div>
+        <h4>Context-aware chat</h4>
+        <p>Ask questions and keep the conversation grounded in your document.</p>
+    </div>
+    <div class="info-card">
+        <div class="info-icon">🔍</div>
+        <h4>Smart comparisons</h4>
+        <p>Reveal similarities and differences between documents with clarity.</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+tab1, tab2 = st.tabs(["✨ Summarize", "⚖️ Compare Documents"])
+
+with tab1:
+    st.markdown("<div class='section-heading'>Upload a source document and unlock intelligent insights.</div>", unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("Upload your document", type=["pdf", "docx", "pptx", "txt"])
+
+    if uploaded_file is not None:
+        file_size_mb = uploaded_file.size / (1024 * 1024)
+        if file_size_mb > MAX_FILE_SIZE_MB:
+            st.error(f"❌ File too large ({file_size_mb:.1f}MB). Please upload a file under {MAX_FILE_SIZE_MB}MB.")
+            uploaded_file = None
+        elif file_size_mb > 5:
+            st.warning(f"⚠️ File is {file_size_mb:.1f}MB — processing may take longer.")
+
+    if uploaded_file is not None:
+        st.markdown(f"""
+        <div class="file-loaded-card">
+            <span class="ficon">📄</span>
+            <div><b>{uploaded_file.name}</b><span>{uploaded_file.size / 1024:.1f} KB</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    if uploaded_file is not None and st.session_state.document_text is None:
+        doc_text = extract_text(uploaded_file)
+        if doc_text:
+            st.session_state.document_text = doc_text
+            save_history(st.session_state.session_id, st.session_state.chat_history, st.session_state.document_text)
+            st.success("✅ Document loaded! Scroll down to chat with it, or click 'Summarize' for a quick summary.")
+
+    st.markdown("<div class='control-panel'>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        language = st.radio("Summary language:", ["English", "Urdu", "Arabic", "French"], horizontal=True)
+    with col2:
+        summary_length = st.radio("Summary length:", ["Short", "Medium", "Detailed"], horizontal=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    if uploaded_file is not None:
+        if st.button("Summarize Document"):
+            with st.spinner("✍️ Nutshell AI is writing your summary..."):
+                summary, tokens_used = summarize_document(st.session_state.document_text, language, summary_length)
+            st.session_state.tokens_used_today += tokens_used
+            st.session_state.tokens_by_category["summarize"] += tokens_used
+            st.session_state.current_summary = summary
+            log_analytics("summarize")
+            st.rerun()
+
+    if st.session_state.current_summary:
+        st.markdown("<div class='control-panel'>", unsafe_allow_html=True)
+        st.subheader("Summary")
+        st.write(st.session_state.current_summary)
+        try:
+            pdf_bytes = create_pdf(st.session_state.current_summary)
+            st.download_button("📥 Download Summary as PDF", data=pdf_bytes, file_name="summary.pdf", mime="application/pdf")
+        except Exception as e:
+            st.error(f"⚠️ Couldn't prepare the summary PDF: {e}")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+with tab2:
+    st.markdown("<div class='section-heading'>Upload two documents to uncover nuanced similarities and differences.</div>", unsafe_allow_html=True)
+    doc1 = st.file_uploader("Upload first document", type=["pdf", "docx", "pptx", "txt"], key="doc1")
+    if doc1 is not None:
+        st.markdown(f"""
+        <div class="file-loaded-card">
+            <span class="ficon">📄</span>
+            <div><b>{doc1.name}</b><span>{doc1.size / 1024:.1f} KB</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    doc2 = st.file_uploader("Upload second document", type=["pdf", "docx", "pptx", "txt"], key="doc2")
+    if doc2 is not None:
+        st.markdown(f"""
+        <div class="file-loaded-card">
+            <span class="ficon">📄</span>
+            <div><b>{doc2.name}</b><span>{doc2.size / 1024:.1f} KB</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    compare_language = st.radio("Comparison language:", ["English", "Urdu", "Arabic", "French"], horizontal=True, key="compare_lang")
+
+    if doc1 is not None and doc2 is not None:
+        if st.button("Compare Documents"):
+            with st.spinner("📊 Nutshell AI is comparing your documents..."):
+                text1 = extract_text(doc1)
+                text2 = extract_text(doc2)
+                if text1 and text2:
+                    comparison, tokens_used = compare_documents(text1, text2, compare_language)
+                    st.session_state.tokens_used_today += tokens_used
+                    st.session_state.tokens_by_category["compare"] += tokens_used
+                    st.session_state.compare_document_text = (
+                        f"Document 1 ({doc1.name}):\n{text1}\n\n---\n\nDocument 2 ({doc2.name}):\n{text2}"
+                    )
+                    st.session_state.current_comparison = comparison
+                    log_analytics("compare")
+                    st.rerun()
+                else:
+                    st.error("One or both file types are not supported.")
+
+    if st.session_state.get("current_comparison"):
+        st.markdown("<div class='control-panel'>", unsafe_allow_html=True)
+        st.subheader("Comparison Result")
+        st.write(st.session_state.current_comparison)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# ---------------- Persistent chat — collapsed by default, opens on click, works from either tab ----------------
+
+st.divider()
+
+active_chat_context = st.session_state.document_text or st.session_state.compare_document_text
+
+with st.expander("💬 Chat with Nutshell AI", expanded=False):
+    st.caption("Ask anything to Nutshell AI.")
+
+    chat_container = st.container()
+    with chat_container:
+        for msg in st.session_state.chat_history:
+            with st.chat_message(msg["role"]):
+                st.write(msg["content"])
+
+    user_question = st.chat_input("Type your message here...")
+    if user_question:
+        st.session_state.chat_history.append({"role": "user", "content": user_question})
+        with st.spinner("Nutshell AI is thinking..."):
+            answer, tokens_used = chat_with_document(
+                active_chat_context,
+                user_question,
+                st.session_state.chat_history
+            )
+        st.session_state.tokens_used_today += tokens_used
+        st.session_state.tokens_by_category["chat"] += tokens_used
+        st.session_state.chat_history.append({"role": "assistant", "content": answer})
+        log_analytics("chat")
+        save_history(st.session_state.session_id, st.session_state.chat_history, st.session_state.document_text)
+        st.rerun()
+
+    if st.session_state.chat_history:
+        try:
+            chat_export_text = format_chat_for_export(st.session_state.chat_history)
+            chat_pdf = create_pdf(chat_export_text)
+            st.download_button("📥 Export Chat History as PDF", data=chat_pdf, file_name="chat_history.pdf", mime="application/pdf")
+        except Exception as e:
+            st.error(f"⚠️ Couldn't prepare the chat PDF for download: {e}")
