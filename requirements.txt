@@ -1,0 +1,8 @@
+streamlit>=1.32.0
+groq>=0.9.0
+PyPDF2>=3.0.1
+python-docx>=1.1.0
+python-pptx>=0.6.23
+pymongo[srv]>=4.6.2
+python-dotenv>=1.0.1
+fpdf2>=2.7.8
